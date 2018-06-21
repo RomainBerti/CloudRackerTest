@@ -12,47 +12,35 @@
 
   <title>Search company location</title>
 
-</head>
-<body  style="margin:20;padding:20">
-  <form class="form-horizontal">
-    <div class="form-group form-group-lg">
-      <p>
+  </head>
+  <body>
+    <form class="form-horizontal">
+      <div class="form-group form-group-lg">
+        <p>
         <h2>Type company name to search: </h2>
         <!-- create button search-->
-        <label class="col-sm-2 control-label" for="searchBar"></label>
-        <input class="form-control" type="text" id="searchBar"> </div>
+        <label class="col-sm-2 control-label" for="lg"></label>
+        <input class="form-control" type="text" id="lg"> </div>
         <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="SearchButton" onclick="clearBox('accordion')">Search</button >
-
         <p>
-        </form>
-        <h2> Results found: </h2>
-        click on the name to display the working hours.
-        <p id="results"></p>
+      </form>
+      <h2> Results found</h2>
+      click on the name to display the working hours.
+      <p id="results"></p>
+      
+      <div class="latestinfo panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+      </div>
 
-        <div class="latestinfo panel-group" id="accordion" role="tablist" aria-multiselectable="true">
-        </div>
-
-        <script>
-          var apiKey = "AIzaSyDp3OGpnbKI_M415T5spH1rheuCzHFvJ0E";
-          console.log(apiKey);
-          // var apiKey = "toto";
-          console.log(document.getElementById("SearchButton"));
-          document.getElementById("SearchButton").addEventListener("click",
-            function() {
+      <script>
+        document.getElementById("SearchButton").addEventListener("click",
+          function() {
             // get the value typed by user in the search bar
-            
-            var textSearchValue = document.getElementById("searchBar").value;
-            console.log(textSearchValue);
-            var herokuApp = "https://cryptic-headland-94862.herokuapp.com/";
-            console.log(herokuApp);
+            var textSearchValue = document.getElementById("lg").value;
             // static part of urls for the google API requests with heroku prefix 
-            var urlNearbySearchPrefix = herokuApp + "https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=" + apiKey + "&location=45.5576996,-74.0104801&radius=50000&name=";
-            var theUrl = urlNearbySearchPrefix + textSearchValue;
-            console.log(urlNearbySearchPrefix);
-            console.log(textSearchValue);
-            console.log(theUrl);
-            var urlPlaceDetailsPrefix = herokuApp + "https://maps.googleapis.com/maps/api/place/details/json?key=" + apiKey + "&placeid=";
-        // initialize index for the number of answers
+        urlNearbySearchPrefix = "https://cryptic-headland-94862.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=AIzaSyC-gbAud482KRJPWgVy2BYr_NoUr0qSGsE&location=45.5576996,-74.0104801&radius=50000&name=";
+        theUrl = urlNearbySearchPrefix + textSearchValue;
+        urlPlaceDetailsPrefix = "https://cryptic-headland-94862.herokuapp.com/https://maps.googleapis.com/maps/api/place/details/json?key=AIzaSyC-gbAud482KRJPWgVy2BYr_NoUr0qSGsE&placeid=";
+        //initialize index for the number of answers
         var index = 0;
         // make the first API request to find places
         fetch(theUrl).then(
@@ -60,18 +48,16 @@
             return response.json();
           }
           ).then(function(jsonData){
-            console.log(jsonData);
-            console.log(jsonData.results.length);
             jsonData.results.slice(-5).forEach(place => {
               //var tempPlaceID = place.place_id;
-              var urlDetail = urlPlaceDetailsPrefix + place.place_id;
+              urlDetail = urlPlaceDetailsPrefix + place.place_id;
               // make the second API request to find working hours
               fetch(urlDetail).then(
                 function(response){
                   return response.json();
                 }).then(function(jsondataDetail){
                   // format the data 
-                  var weekdaysWorkingHours = jsondataDetail.result.opening_hours.weekday_text.join("<br />");
+                  var weekdays =  jsondataDetail.result.opening_hours.weekday_text.join("<br />");
                   // display data in the accordion
                   $('.latestinfo').append(
                     '<div class="panel panel-default">'+
@@ -84,24 +70,17 @@
                     '</div>'+
                     '<div id="collapse_'+index+'" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading_'+index+'">'+
                     '<div class="panel-body">'+
-                    weekdaysWorkingHours+
+                    weekdays+
                     '</div>'+
                     '</div>'+
                     '</div>'
                     );
                   index++;
-                  // open the accordion if there is only one result
-                  if (jsonData.results.length == 1){
-                    $(document).ready(function() {
-                      $('#collapse_0').collapse('show');
-                    });
-                  }
-
                 });
               });
           })
         })
-          function clearBox(elementID){
+        function clearBox(elementID){
           // function to clear the elementID
           document.getElementById(elementID).innerHTML = "";
         }
