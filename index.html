@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/js/bootstrap.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="style.css"/>
+
+  <title>Search company location</title>
+
+</head>
+<body  style="margin:20;padding:20">
+  <form class="form-horizontal">
+    <div class="form-group form-group-lg">
+      <p>
+        <h2>Type company name to search: </h2>
+        <!-- create button search-->
+        <label class="col-sm-2 control-label" for="lg"></label>
+        <input class="form-control" type="text" id="lg"> </div>
+        <button class="btn btn-outline-success my-2 my-sm-0" type="submit" id="SearchButton" onclick="clearBox('accordion')">Search</button >
+        <p>
+        </form>
+        <h2> Results found: </h2>
+        click on the name to display the working hours.
+        <p id="results"></p>
+
+        <div class="latestinfo panel-group" id="accordion" role="tablist" aria-multiselectable="true">
+        </div>
+
+        <script>
+          document.getElementById("SearchButton").addEventListener("click",
+            function() {
+            // get the value typed by user in the search bar
+            var textSearchValue = document.getElementById("lg").value;
+            // static part of urls for the google API requests with heroku prefix 
+            urlNearbySearchPrefix = "https://cryptic-headland-94862.herokuapp.com/https://maps.googleapis.com/maps/api/place/nearbysearch/json?key=AIzaSyC-gbAud482KRJPWgVy2BYr_NoUr0qSGsE&location=45.5576996,-74.0104801&radius=50000&name=";
+            theUrl = urlNearbySearchPrefix + textSearchValue;
+            urlPlaceDetailsPrefix = "https://cryptic-headland-94862.herokuapp.com/https://maps.googleapis.com/maps/api/place/details/json?key=AIzaSyC-gbAud482KRJPWgVy2BYr_NoUr0qSGsE&placeid=";
+        //initialize index for the number of answers
+        var index = 0;
+        // make the first API request to find places
+        fetch(theUrl).then(
+          function(response){
+            return response.json();
+          }
+          ).then(function(jsonData){
+            console.log(jsonData.results.length);
+            jsonData.results.slice(-5).forEach(place => {
+              //var tempPlaceID = place.place_id;
+              urlDetail = urlPlaceDetailsPrefix + place.place_id;
+              // make the second API request to find working hours
+              fetch(urlDetail).then(
+                function(response){
+                  return response.json();
+                }).then(function(jsondataDetail){
+                  // format the data 
+                  var weekdaysWorkingHours =  jsondataDetail.result.opening_hours.weekday_text.join("<br />");
+                  // display data in the accordion
+                  $('.latestinfo').append(
+                    '<div class="panel panel-default">'+
+                    '<div class="panel-heading" role="tab" id="heading_'+index+'">'+
+                    '<h4 class="panel-title">'+
+                    '<a role="button" data-toggle="collapse" data-parent="#accordion" href="#collapse_'+index+'" aria-expanded="true" aria-controls="collapse_'+index+'">'+
+                    place.name+
+                    '</a>'+
+                    '</h4>'+
+                    '</div>'+
+                    '<div id="collapse_'+index+'" class="panel-collapse collapse in" role="tabpanel" aria-labelledby="heading_'+index+'">'+
+                    '<div class="panel-body">'+
+                    weekdaysWorkingHours+
+                    '</div>'+
+                    '</div>'+
+                    '</div>'
+                    );
+                  index++;
+                  // open the accordion if there is only one result
+                  if (jsonData.results.length == 1){
+                    $(document).ready(function() {
+                      $('#collapse_0').collapse('show');
+                    });
+                    console.log("prout");
+                  }
+
+                });
+              });
+          })
+        })
+          function clearBox(elementID){
+          // function to clear the elementID
+          document.getElementById(elementID).innerHTML = "";
+        }
+      </script>
+    </body>
+    </html>
+
